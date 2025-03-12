@@ -120,7 +120,6 @@ concise_reviews = (
     .with_columns((pl.col('match_count') / pl.col('text').str.len_chars()).alias('match_ratio'))
     .filter(pl.col("match_count") > 0)
     .sort(by='match_ratio', descending=True)
-    
     .collect()
     )
 

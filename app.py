@@ -4,11 +4,12 @@ import pandas as pd
 import plotly.express as px
 import polars as pl
 import glob
-import pickle
-
+import time
+from openai import OpenAI
 
 
 st.set_page_config(layout='wide')
+
 
 keywords = ['worst',
 'horrible',
@@ -68,87 +69,6 @@ keywords = ['worst',
  'also',
  'waited',
  'customer']
-
-# word_combinations = [('ever', 'worst'),
-#  ('food', 'worst'),
-#  ('service', 'worst'),
-#  ('order', 'worst'),
-#  ('service', 'horrible'),
-#  ('food', 'horrible'),
-#  ('customer', 'horrible'),
-#  ('order', 'horrible'),
-#  ('food', 'amazing'),
-#  ('service', 'amazing'),
-#  ('great', 'amazing'),
-#  ('place', 'amazing'),
-#  ('food', 'great'),
-#  ('service', 'great'),
-#  ('place', 'great'),
-#  ('good', 'great'),
-#  ('food', 'delicious'),
-#  ('service', 'delicious'),
-#  ('great', 'delicious'),
-#  ('friendly', 'delicious'),
-#  ('service', 'bad'),
-#  ('food', 'bad'),
-#  ('good', 'bad'),
-#  ('place', 'bad'),
-#  ('service', 'rude'),
-#  ('order', 'rude'),
-#  ('food', 'rude'),
-#  ('customer', 'rude'),
-#  ('ever', 'best'),
-#  ('food', 'best'),
-#  ('place', 'best'),
-#  ('service', 'best'),
-#  ('place', 'love'),
-#  ('food', 'love'),
-#  ('great', 'love'),
-#  ('always', 'love'),
-#  ('food', 'order'),
-#  ('time', 'order'),
-#  ('get', 'order'),
-#  ('service', 'order'),
-#  ('staff', 'friendly'),
-#  ('food', 'friendly'),
-#  ('great', 'friendly'),
-#  ('service', 'friendly'),
-#  ('service', 'terrible'),
-#  ('food', 'terrible'),
-#  ('order', 'terrible'),
-#  ('customer', 'terrible'),
-#  ('food', 'reviews'),
-#  ('place', 'reviews'),
-#  ('good', 'reviews'),
-#  ('bad', 'reviews'),
-#  ('food', 'never'),
-#  ('order', 'never'),
-#  ('always', 'never'),
-#  ('place', 'never'),
-#  ('recommend', 'highly'),
-#  ('food', 'highly'),
-#  ('great', 'highly'),
-#  ('recommended', 'highly'),
-#  ('food', 'ordered'),
-#  ('good', 'ordered'),
-#  ('order', 'ordered'),
-#  ('chicken', 'ordered'),
-#  ('food', 'ok'),
-#  ('good', 'ok'),
-#  ('service', 'ok'),
-#  ('place', 'ok'),
-#  ('food', 'money'),
-#  ('waste', 'money'),
-#  ('worth', 'money'),
-#  ('order', 'money'),
-#  ('tortillas', 'corn'),
-#  ('good', 'corn'),
-#  ('tacos', 'corn'),
-#  ('food', 'corn'),
-#  ('food', 'sickening'),
-#  ('place', 'sickening'),
-#  ('get', 'sickening'),
-#  ('it', 'sickening')]
 
 
 word_combinations = [('ever', 'worst'),
@@ -380,25 +300,41 @@ word_combinations = [('ever', 'worst'),
  ('food', 'customer'),
  ('good', 'customer')]
 
-patterns = [rf"\b{word1}\b.*\b{word2}\b" for word1, word2 in word_combinations]
 
+
+######### DEFINE VARS #########
+import os
+import certifi
+os.environ["SSL_CERT_FILE"] = certifi.where()
+openai_key = st.secrets['openai_key']
+client = OpenAI(api_key=openai_key)
+
+
+patterns = [rf"\b{word1}\b.*\b{word2}\b" for word1, word2 in word_combinations]
 keywords = '|'.join(keywords)
 review_paths = glob.glob('data/all/reviews/*.parquet')
 
 ######### LOAD DATA ######### 
-establishments = pl.scan_parquet('data/all/all_establishments.parquet')
+establishments = (
+    pl.scan_parquet('data/all/all_establishments.parquet')
+    # .filter(pl.col('latitude').is_not_null())
+    # .unique()
+)
 reviews = pl.concat([pl.scan_parquet(path) for path in review_paths])
-nyc_establishments = (establishments
-                      .filter(
-                          (True==True)
-                          & (pl.col('state') == "NY")
-                          & (pl.col('longitude').is_not_null())
-                          & (pl.col('average_rating').is_not_null())
-                          )
-                      )
 
-with open("models/vectorizer.pkl", "rb") as file:
-    vectorizer = pickle.load(file)
+# only return establishments that have reviews available
+valid_fac_ids = reviews.unique('facility_id').select('facility_id').collect()
+nyc_establishments = (
+    establishments
+    .filter(
+        (True==True)
+        & (pl.col('state') == "NY")
+        & (pl.col('longitude').is_not_null())
+        & (pl.col('average_rating').is_not_null())
+        & (pl.col('facility_id').is_in(valid_fac_ids))
+        )
+    )
+
 
 ######### SESSION STATES #########
 if 'messages' not in st.session_state:
@@ -441,6 +377,55 @@ def load_filtered_reviews(fac_ids):
         AND text NOT NULL
     """
     return duckdb.query(query).df()
+
+
+def single_query_llm(review_str):
+    prompt = f"""
+    Tell me the strengths and weaknesses of this places.
+    Give a analysis of what customers like and dislike: {review_str}.
+    """
+    completion = client.chat.completions.create(
+        model='gpt-4o-2024-11-20',
+        # model="o3-mini-2025-01-31",
+        # model='gpt-4o-mini-2024-07-18',
+        messages=[
+            {'role': 'system', "content": "You are an authority on food and beverage establishments. Help me anaylze review texts."},
+            {"role": "user", "content": prompt},
+        ],
+        stream=True
+    )
+
+    for chunk in completion:
+        if hasattr(chunk.choices[0].delta, "content"): 
+            yield chunk.choices[0].delta.content
+            time.sleep(0.02)
+
+
+
+def query_llm(review_str):
+    prompt = f"""
+    Tell me the strengths and weaknesses of these places. Don't mention specific places. 
+    Give a general analysis of what customers like and dislike: {review_str}.
+    Then tell me the speicifc best place by name and why it's the best. Then the specific worst place by name and why it's the worst.
+    Then tell me the best strategy to succeed among these places such that I can open my own place nearby and be successful.
+    """
+
+    completion = client.chat.completions.create(
+        model='gpt-4o-2024-11-20',
+        # model="o3-mini-2025-01-31",
+        # model='gpt-4o-mini-2024-07-18',
+        messages=[
+            {'role': 'system', "content": "You are an authority on food and beverage establishments. Help me anaylze review texts."},
+            {"role": "user", "content": prompt},
+        ],
+        stream=True
+    )
+
+    for chunk in completion:
+        if hasattr(chunk.choices[0].delta, "content"): 
+            yield chunk.choices[0].delta.content
+            time.sleep(0.02)
+
 
 ######### LAYOUT #########
 main_filter_col, _ = st.columns([6, 6])
@@ -499,7 +484,7 @@ with map_col:
 
 ######### AGGREGATIONS #########
 with agg_col:
-    tab1, tab2, tab3 = st.tabs(["📈 Ratings Over Time", ":left_speech_bubble: DeepInsights", ":star: Reviews"])
+    tab1, tab2, tab3 = st.tabs(["📈 Ratings Over Time", ":star: Reviews", ":left_speech_bubble: DeepInsights"])
 
     with tab1:
         ######### LINE CHART #########
@@ -536,92 +521,134 @@ with agg_col:
         )
 
     with tab2:
-        ######### CHAT #########
-        response_container = st.container(height=600)
-        input_container = st.container()
-
-
-        with input_container:
-            if prompt := st.chat_input('Enter your abstract', max_chars=3000):
-                # with st.chat_message('user'):
-                #     st.write(prompt)
-                st.session_state['messages'].append({'role': 'user', 'content': prompt})
-                # with st.chat_message("assistant"):
-                #     response = st.write(prompt)
-        with response_container:
-            for i, message in enumerate(st.session_state['messages']):
-                with st.chat_message(message['role']):
-                    st.markdown(message['content'])
-
-
-        
-
-    with tab3:
-        
         ######### REVIEWS #########
         filtered_reviews = load_filtered_reviews(fac_ids)
         if map_selection.selection['point_indices']:
             agg_df = map_df.iloc[map_selection_idx].sort_values(by='average_rating', ascending=False)
-            selected_rows = st.dataframe(
-                (agg_df
-                 [['google_name', 'category', 'average_rating', 'n_reviews', 'facility_id']]
-                 .rename(columns={'google_name': 'Restaurant', 'average_rating': 'Google Rating', 'category': 'Category', 'n_reviews': 'Total Reviews'})
-                 ),
-                 column_config={'facility_id': None},
-                 hide_index=True,
-                 on_select='rerun',
-                 selection_mode='multi-row'
+
+            agg_df = pd.merge(agg_df[['facility_id', 'google_name']], 
+                              filtered_reviews, 
+                              left_on='facility_id', 
+                              right_on='facility_id')
+            st.dataframe(agg_df, hide_index=False, column_config={'facility_id': None, 'google_name': 'Restaurant', 'text': 'review'})
+
+            concise_reviews = (
+                reviews
+                .join(establishments.select('facility_id', 'restaurant_name', 'average_rating'), on='facility_id')
+                .filter(
+                    (True == True)
+                    & pl.col('facility_id').is_in(agg_df['facility_id'].to_list())
+                ) 
+                .head(100000)
+                .with_columns(
+                    pl.sum_horizontal([pl.col("text").str.count_matches(p, literal=False) for p in patterns]).alias("match_count")
+                    )
+                .with_columns((pl.col('match_count') / pl.col('text').str.len_chars()).alias('match_ratio'))
+                .filter(pl.col("match_count") > 0)
+                .sort(by='match_ratio', descending=True)
+                .collect()
+                .unique(['facility_id', 'text', 'timestamp', 'rating'])
+                )
+
+            st.dataframe(
+                concise_reviews
+                .filter(
+                    (True == True)
+                    & (pl.col.match_ratio.is_between(0.0001, 0.02)) 
+                )
+                .unique(['facility_id', 'text', 'timestamp', 'rating'])
+                .with_row_index('id')
             )
-            if selected_rows.selection['rows']:
-                agg_df = pd.merge(agg_df.iloc[selected_rows.selection['rows']][['facility_id', 'google_name']], 
-                                  filtered_reviews, 
-                                  left_on='facility_id', 
-                                  right_on='facility_id')
-                st.dataframe(agg_df, hide_index=False, column_config={'facility_id': None, 'google_name': 'Restaurant', 'text': 'review'})
-                st.dataframe(
-                    agg_df
-                    .query('text.str.contains(@keywords) & rating.isin([1, 5])')
-                    .reset_index(drop=True), 
-                    hide_index=False, 
-                    column_config={'facility_id': None, 'google_name': 'Restaurant', 'text': 'review'}
-                    )
-
-
-                concise_reviews = (
-                    reviews
-                    .join(establishments.select('facility_id', 'restaurant_name', 'average_rating'), on='facility_id')
-                    .filter(
-                        (True == True)
-                        & pl.col('facility_id').is_in(agg_df['facility_id'].to_list())
-                    ) 
-                    .head(100000)
-                    .with_columns(
-                        pl.sum_horizontal([pl.col("text").str.count_matches(p, literal=False) for p in patterns]).alias("match_count")
-                        )
-                    .with_columns((pl.col('match_count') / pl.col('text').str.len_chars()).alias('match_ratio'))
-                    .filter(pl.col("match_count") > 0)
-                    .sort(by='match_ratio', descending=True)
-                    .collect()
-                    )
-
-                st.dataframe(
-                    concise_reviews
-                    .filter(
-                        (True == True)
-                        & (pl.col.match_ratio.is_between(0.0001, 0.01)) 
-                    )
-                    .with_row_index('id')
+            st.dataframe(
+                concise_reviews
+                .filter(
+                    (True == True)
+                    & (pl.col.match_ratio.is_between(0.0001, 0.01)) 
                 )
-                st.dataframe(
-                    concise_reviews
-                    .filter(
-                        (True == True)
-                        & (pl.col.match_ratio.is_between(0.0001, 0.01)) 
-                    )
-                    .select(pl.col('rating').value_counts())
-                )
+                .unique(['facility_id', 'text', 'timestamp', 'rating'])
+                .select(pl.col('rating').value_counts())
+            )
 
-            else:
-                st.dataframe(filtered_reviews[['text', 'rating']], hide_index=True)
+            # else:
+            #     st.dataframe(filtered_reviews[['text', 'rating']], hide_index=True)
         else:
             st.markdown('# Please make selections on the map.')
+
+        
+
+    with tab3:
+        ######### CHAT #########
+        filtered_reviews = load_filtered_reviews(fac_ids)
+        if map_selection.selection['point_indices']:
+            agg_df = map_df.iloc[map_selection_idx].sort_values(by='average_rating', ascending=False)
+ 
+
+            agg_df = pd.merge(agg_df[['facility_id', 'google_name']], 
+                                filtered_reviews, 
+                                left_on='facility_id', 
+                                right_on='facility_id')
+
+            tab2_reviews = (
+                reviews
+                .join(establishments.select('facility_id', 'restaurant_name', 'average_rating'), on='facility_id')
+                .filter(
+                    (True == True)
+                    & pl.col('facility_id').is_in(agg_df['facility_id'].to_list())
+                ) 
+                .head(100000)
+                .with_columns(
+                    pl.sum_horizontal([pl.col("text").str.count_matches(p, literal=False) for p in patterns]).alias("match_count")
+                    )
+                .with_columns((pl.col('match_count') / pl.col('text').str.len_chars()).alias('match_ratio'))
+                .filter(pl.col("match_count") > 0)
+                .sort(by='match_ratio', descending=True)
+                .collect()
+                .unique()
+                )
+
+            reviews_str = (
+                tab2_reviews
+                .filter(
+                    (True == True)
+                    & (pl.col.match_ratio.is_between(0.001, 0.01)) 
+                )
+                .with_columns(reviews_str=pl.concat_str([pl.col('restaurant_name'), pl.col('text')], separator='\n'))
+                .sort(by='rating')
+                .unique()
+                .head(700)
+                .select(pl.col('reviews_str').str.join('\n\n').alias('reviews_str'))
+            )
+
+            reviews_str = (
+                tab2_reviews
+                .filter(
+                    (True == True)
+                    & (pl.col.match_ratio.is_between(0.001, 0.01)) 
+                )
+                .with_row_index('id')
+            )
+
+            response_container = st.container(height=600)
+            with response_container:
+                if len(map_selection.selection['point_indices']) == 1:
+                    st.write_stream(single_query_llm(reviews_str))
+                else:
+                    st.write_stream(query_llm(reviews_str))
+                # with st.chat_message('Gordon Ramsay'):
+                #     st.markdown(openai_response)
+
+        # response_container = st.container(height=600)
+        # input_container = st.container()
+
+
+        # with input_container:
+        #     if prompt := st.chat_input('Enter your abstract', max_chars=3000):
+        #         # with st.chat_message('user'):
+        #         #     st.write(prompt)
+        #         st.session_state['messages'].append({'role': 'user', 'content': prompt})
+        #         # with st.chat_message("assistant"):
+        #         #     response = st.write(prompt)
+        # with response_container:
+        #     for i, message in enumerate(st.session_state['messages']):
+        #         with st.chat_message(message['role']):
+        #             st.markdown(message['content'])
