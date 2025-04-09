@@ -1,0 +1,57 @@
+Category,City,Most_Similar_City,Similarity_Score
+Middle Eastern & Mediterranean Cuisine,Middle Eastern & Mediterranean Cuisine - Austin,Middle Eastern & Mediterranean Cuisine - Chicago,0.24988844628356027
+Middle Eastern & Mediterranean Cuisine,Middle Eastern & Mediterranean Cuisine - Chicago,Middle Eastern & Mediterranean Cuisine - Austin,0.24988844628356027
+Middle Eastern & Mediterranean Cuisine,Middle Eastern & Mediterranean Cuisine - LosAngeles,Middle Eastern & Mediterranean Cuisine - Austin,0.2254459944998706
+Middle Eastern & Mediterranean Cuisine,Middle Eastern & Mediterranean Cuisine - NewYork,Middle Eastern & Mediterranean Cuisine - Austin,0.22214647078823296
+American & Fast Food,American & Fast Food - Austin,American & Fast Food - Chicago,0.2558022148856062
+American & Fast Food,American & Fast Food - Chicago,American & Fast Food - Austin,0.2558022148856062
+American & Fast Food,American & Fast Food - LosAngeles,American & Fast Food - NewYork,0.2384363138472944
+American & Fast Food,American & Fast Food - NewYork,American & Fast Food - Chicago,0.24523422803541114
+Latin American Cuisine,Latin American Cuisine - Austin,Latin American Cuisine - Chicago,0.21865130674750072
+Latin American Cuisine,Latin American Cuisine - Chicago,Latin American Cuisine - Austin,0.21865130674750072
+Latin American Cuisine,Latin American Cuisine - LosAngeles,Latin American Cuisine - Austin,0.20060244491317797
+Latin American Cuisine,Latin American Cuisine - NewYork,Latin American Cuisine - Chicago,0.2070763083805688
+Southern & BBQ,Southern & BBQ - Austin,Southern & BBQ - Chicago,0.2728191614417787
+Southern & BBQ,Southern & BBQ - Chicago,Southern & BBQ - Austin,0.2728191614417787
+Southern & BBQ,Southern & BBQ - LosAngeles,Southern & BBQ - Austin,0.2658526830015546
+Southern & BBQ,Southern & BBQ - NewYork,Southern & BBQ - Austin,0.27071606639432827
+European Cuisine,European Cuisine - Austin,European Cuisine - Chicago,0.22798306868764653
+European Cuisine,European Cuisine - Chicago,European Cuisine - Austin,0.22798306868764653
+European Cuisine,European Cuisine - LosAngeles,European Cuisine - Chicago,0.21378663114627455
+European Cuisine,European Cuisine - NewYork,European Cuisine - Chicago,0.21192333116853143
+Specialty & Other,Specialty & Other - Austin,Specialty & Other - LosAngeles,0.2203050091222965
+Specialty & Other,Specialty & Other - Chicago,Specialty & Other - NewYork,0.2258166453276282
+Specialty & Other,Specialty & Other - LosAngeles,Specialty & Other - Austin,0.2203050091222965
+Specialty & Other,Specialty & Other - NewYork,Specialty & Other - Chicago,0.2258166453276282
+Bakery & Desserts,Bakery & Desserts - Austin,Bakery & Desserts - NewYork,0.2374885689584587
+Bakery & Desserts,Bakery & Desserts - Chicago,Bakery & Desserts - Austin,0.23075719745434828
+Bakery & Desserts,Bakery & Desserts - LosAngeles,Bakery & Desserts - Chicago,0.19744890527750192
+Bakery & Desserts,Bakery & Desserts - NewYork,Bakery & Desserts - Austin,0.2374885689584587
+Seafood & Cajun,Seafood & Cajun - Austin,Seafood & Cajun - NewYork,0.2440229889452334
+Seafood & Cajun,Seafood & Cajun - Chicago,Seafood & Cajun - Austin,0.231123143366209
+Seafood & Cajun,Seafood & Cajun - LosAngeles,Seafood & Cajun - Chicago,0.21922456507064514
+Seafood & Cajun,Seafood & Cajun - NewYork,Seafood & Cajun - Austin,0.2440229889452334
+Cafés & Beverage Shops,Cafés & Beverage Shops - Austin,Cafés & Beverage Shops - Chicago,0.22742032875858717
+Cafés & Beverage Shops,Cafés & Beverage Shops - Chicago,Cafés & Beverage Shops - NewYork,0.2275405416167153
+Cafés & Beverage Shops,Cafés & Beverage Shops - LosAngeles,Cafés & Beverage Shops - NewYork,0.24560202140113158
+Cafés & Beverage Shops,Cafés & Beverage Shops - NewYork,Cafés & Beverage Shops - LosAngeles,0.24560202140113158
+Asian Cuisine,Asian Cuisine - Austin,Asian Cuisine - Chicago,0.23977965033030837
+Asian Cuisine,Asian Cuisine - Chicago,Asian Cuisine - Austin,0.23977965033030837
+Asian Cuisine,Asian Cuisine - LosAngeles,Asian Cuisine - Austin,0.23048046945836506
+Asian Cuisine,Asian Cuisine - NewYork,Asian Cuisine - Chicago,0.23539012655014468
+Vegetarian & Health Food,Vegetarian & Health Food - Austin,Vegetarian & Health Food - NewYork,0.2531170082636128
+Vegetarian & Health Food,Vegetarian & Health Food - Chicago,Vegetarian & Health Food - Austin,0.24760471492023423
+Vegetarian & Health Food,Vegetarian & Health Food - LosAngeles,Vegetarian & Health Food - Chicago,0.24737956890561857
+Vegetarian & Health Food,Vegetarian & Health Food - NewYork,Vegetarian & Health Food - Austin,0.2531170082636128
+Other,Other - Austin,Other - NewYork,0.2797895256284922
+Other,Other - Chicago,Other - Austin,0.2432214614305619
+Other,Other - LosAngeles,Other - Austin,0.2645025872491684
+Other,Other - NewYork,Other - Austin,0.2797895256284922
+African & Caribbean Cuisine,African & Caribbean Cuisine - Austin,African & Caribbean Cuisine - Chicago,0.2499176944719559
+African & Caribbean Cuisine,African & Caribbean Cuisine - Chicago,African & Caribbean Cuisine - Austin,0.2499176944719559
+African & Caribbean Cuisine,African & Caribbean Cuisine - LosAngeles,African & Caribbean Cuisine - Austin,0.24501776730704572
+African & Caribbean Cuisine,African & Caribbean Cuisine - NewYork,African & Caribbean Cuisine - Austin,0.22717346059866725
+Bar & Lounge,Bar & Lounge - Austin,Bar & Lounge - LosAngeles,0.23699346123404214
+Bar & Lounge,Bar & Lounge - Chicago,Bar & Lounge - Austin,0.227290571424267
+Bar & Lounge,Bar & Lounge - LosAngeles,Bar & Lounge - NewYork,0.2383608874848511
+Bar & Lounge,Bar & Lounge - NewYork,Bar & Lounge - LosAngeles,0.2383608874848511
