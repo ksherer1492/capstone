@@ -14,15 +14,10 @@ import openai
 # openai_api_key = "sk-<YOUR_OPENAI_KEY>"
 # mapbox_token    = "pk-<YOUR_MAPBOX_TOKEN>"  # optional
 
-# Load secrets (fallback to empty dict on parse errors)
-try:
-    secrets_dict = st.secrets
-except Exception:
-    secrets_dict = {}
 
 # API keys
-openai.api_key = secrets_dict.get("openai_api_key", os.getenv("OPENAI_API_KEY", ""))
-MAPBOX_TOKEN = secrets_dict.get("mapbox_token", os.getenv("MAPBOX_TOKEN", ""))
+openai.api_key = st.secrets['openai_key']
+MAPBOX_TOKEN = ""
 
 # Other settings via env vars with defaults
 DEBOUNCE_MS = int(os.getenv("DEBOUNCE_MS", 400))
