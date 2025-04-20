@@ -6,3 +6,6 @@ plotly==6.0.0
 duckdb==1.2.0
 polars==1.24.0
 openai==1.65.5
+geopandas==1.0.1
+folium==0.19.5
+streamlit-folium==0.24.1
