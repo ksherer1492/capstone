@@ -17,10 +17,10 @@ client = OpenAI(api_key=openai_key)
 
 ######### LOAD DATA ######### 
 @st.cache_data
-def load_data():
-    keywords = pd.read_csv('data/all/citycategory/keyword_trends_by_category_city.csv', usecols=['category_city', 'top_positive_keywords', 'top_negative_keywords', 'top_positive_coefs', 'top_negative_coefs'])
-    similarity = pd.read_csv('data/all/citycategory/most_similar_cities.csv')
-    topics = pd.read_csv('data/all/citycategory/topic_data.csv', usecols=['City_Category', 'Sentiment', 'Words', 'topic_words'])
+def load_data(): 
+    keywords = pd.read_csv('../data/all/citycategory/keyword_trends_by_category_city.csv', usecols=['category_city', 'top_positive_keywords', 'top_negative_keywords', 'top_positive_coefs', 'top_negative_coefs'])
+    similarity = pd.read_csv('../data/all/citycategory/most_similar_cities.csv')
+    topics = pd.read_csv('../data/all/citycategory/topic_data.csv', usecols=['City_Category', 'Sentiment', 'Words', 'topic_words'])
     return keywords, similarity, topics
 
 keywords, similarity, topics = load_data()
