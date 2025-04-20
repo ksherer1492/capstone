@@ -35,7 +35,7 @@ for k, v in {
     st.session_state.setdefault(k, v)
 
 # ─────────────────── Load data ────────────────────
-TRACTS = gpd.read_file("clustered_tracts_filtered.geojson").to_crs(4326)
+TRACTS = gpd.read_file("data/all/clustered_tracts_filtered.geojson").to_crs(4326)
 
 # Cast cluster to string for true categorical coloring
 TRACTS['cluster_str'] = TRACTS['cluster'].astype(str)
