@@ -48,8 +48,6 @@ def load_clustered_geojson(path="data/all/clustered_tracts_knee_filtered.geojson
 
     return tracts, geojson_minimal
 
-TRACTS, geojson = load_clustered_geojson()
-
 if "TRACTS" not in st.session_state or "geojson" not in st.session_state:
     tracts, geojson = load_clustered_geojson()
     st.session_state["TRACTS"] = tracts
