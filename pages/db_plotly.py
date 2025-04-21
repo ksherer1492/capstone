@@ -28,7 +28,7 @@ for k, v in {
 
 # ───────────── Load data ─────────────
 import gzip
-with gzip.open(data/all/"clustered_tracts_knee_filtered.geojson.gz", 'rt', encoding='utf-8') as f:
+with gzip.open("data/all/clustered_tracts_knee_filtered.geojson.gz", 'rt', encoding='utf-8') as f:
     geojson_data = json.load(f)
 TRACTS = gpd.GeoDataFrame.from_features(geojson_data["features"])
 TRACTS = TRACTS.set_crs(4326)
