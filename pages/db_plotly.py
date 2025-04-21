@@ -7,8 +7,7 @@ import streamlit as st
 import openai
 import gzip
 
-# ────────────────────── Config ──────────────────────
-# API keys
+# ───────────── Config ─────────────
 openai.api_key = st.secrets['openai_key']
 MAPBOX_TOKEN = ""
 
@@ -26,8 +25,7 @@ for k, v in {
 }.items():
     st.session_state.setdefault(k, v)
 
-# ───────────── Load data ─────────────
-import gzip
+
 with gzip.open("data/all/clustered_tracts_knee_filtered.geojson.gz", 'rt', encoding='utf-8') as f:
     geojson_data = json.load(f)
 TRACTS = gpd.GeoDataFrame.from_features(geojson_data["features"])
@@ -39,6 +37,7 @@ TRACTS['lat'] = centroids.y
 TRACTS['GEOIDFQ'] = TRACTS['GEOIDFQ'].str.replace('1400000US6','1400000US06')
 minimal = TRACTS[['GEOIDFQ','geometry']]
 geojson = json.loads(minimal.to_json())
+
 
 # ───────────── Prompt helper (Markdown) ─────────────
 
@@ -88,7 +87,7 @@ def build_prompt(row):
     return "\n".join(lines)
 
 # ───────────── Layout ─────────────
-st.set_page_config(page_title='Census-Tract Explorer', layout='wide')
+st.set_page_config(page_title='Census-Tract Cluster Explorer', layout='wide')
 st.markdown("""
 <style>
 .advisor-box { background: #212121; color: #fff; padding: 1rem; border-radius: 8px; height: 90vh; overflow-y: auto; }
@@ -104,14 +103,9 @@ with right:
         TRACTS, geojson=geojson, locations='GEOIDFQ', featureidkey='properties.GEOIDFQ',
         color='cluster_cat', color_discrete_sequence=px.colors.qualitative.Set3,
         hover_data={'cluster_cat':False,'cluster':True,'driver_1':True,'driver_2':True,'driver_3':True},
-        zoom=11, opacity=0.7, height=1050
+        center=dict(lat=41.8781, lon=-87.6298), zoom=11, opacity=0.7, height=1150
     )
-    fig.update_layout(
-        margin=dict(l=0,r=0,t=0,b=0), 
-        mapbox_style='carto-darkmatter' if MAPBOX_TOKEN else 'open-street-map', 
-        mapbox_accesstoken=MAPBOX_TOKEN or None,
-        showlegend=False
-    )
+    fig.update_layout(margin=dict(l=0,r=0,t=0,b=0), mapbox_style='carto-darkmatter' if MAPBOX_TOKEN else 'open-street-map', mapbox_accesstoken=MAPBOX_TOKEN or None, showlegend=False)
     fig.update_traces(selected=dict(marker=dict(opacity=0.7)), unselected=dict(marker=dict(opacity=0.3)))
     fig.update_traces(marker_line_color='#000', marker_line_width=0.5)
     map_event = st.plotly_chart(fig, key='main-map', on_select='rerun', selection_mode='points', use_container_width=True)
@@ -130,11 +124,13 @@ if isinstance(map_event, dict) and map_event.selection.points:
         row = TRACTS[TRACTS.GEOIDFQ==gid].iloc[0]
         prompt = build_prompt(row)
         st.session_state.error_msg = ''
-        response = ''
+        response = '''
+
+'''
         for chunk in openai.chat.completions.create(
             model=OPENAI_MODEL,
             messages=[
-                {'role':'system','content':'You are a data-driven advisor. Output plain Markdown. Do not include triple backticks or any code blocks. When listing membership drivers, respond with exactly five concise bullet points only, without adding extra points.'},
+                {'role':'system','content':'You are a data-driven advisor. Output plain Markdown. Do not include triple backticks or any code blocks.'},
                 {'role':'user','content':prompt}
             ],
             temperature=TEMPERATURE,
