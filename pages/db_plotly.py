@@ -8,6 +8,7 @@ import openai
 import gzip
 
 # ───────────── Config ─────────────
+
 openai.api_key = st.secrets['openai_key']
 MAPBOX_TOKEN = ""
 
@@ -26,17 +27,37 @@ for k, v in {
     st.session_state.setdefault(k, v)
 
 
-with gzip.open("data/all/clustered_tracts_knee_filtered.geojson.gz", 'rt', encoding='utf-8') as f:
-    geojson_data = json.load(f)
-TRACTS = gpd.GeoDataFrame.from_features(geojson_data["features"])
-TRACTS = TRACTS.set_crs(4326)
-TRACTS['cluster_str'] = TRACTS['cluster'].astype(str)
-centroids = TRACTS.to_crs(3857).geometry.centroid.to_crs(4326)
-TRACTS['lon'] = centroids.x
-TRACTS['lat'] = centroids.y
-TRACTS['GEOIDFQ'] = TRACTS['GEOIDFQ'].str.replace('1400000US6','1400000US06')
-minimal = TRACTS[['GEOIDFQ','geometry']]
-geojson = json.loads(minimal.to_json())
+
+@st.cache_data(show_spinner="Loading and processing GeoJSON...")
+def load_clustered_geojson(path="data/all/clustered_tracts_knee_filtered.geojson.gz"):
+    with gzip.open(path, 'rt', encoding='utf-8') as f:
+        geojson_data = json.load(f)
+
+    tracts = gpd.GeoDataFrame.from_features(geojson_data["features"])
+    tracts = tracts.set_crs(4326)
+    tracts['cluster_str'] = tracts['cluster'].astype(str)
+
+    centroids = tracts.to_crs(3857).geometry.centroid.to_crs(4326)
+    tracts['lon'] = centroids.x
+    tracts['lat'] = centroids.y
+
+    tracts['GEOIDFQ'] = tracts['GEOIDFQ'].str.replace('1400000US6', '1400000US06')
+    
+    minimal = tracts[['GEOIDFQ', 'geometry']]
+    geojson_minimal = json.loads(minimal.to_json())
+
+    return tracts, geojson_minimal
+
+TRACTS, geojson = load_clustered_geojson()
+
+if "TRACTS" not in st.session_state or "geojson" not in st.session_state:
+    tracts, geojson = load_clustered_geojson()
+    st.session_state["TRACTS"] = tracts
+    st.session_state["geojson"] = geojson
+
+# Use the cached versions from session state
+TRACTS = st.session_state["TRACTS"]
+geojson = st.session_state["geojson"]
 
 
 # ───────────── Prompt helper (Markdown) ─────────────
