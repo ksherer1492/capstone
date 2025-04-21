@@ -108,7 +108,7 @@ def build_prompt(row):
     return "\n".join(lines)
 
 # ───────────── Layout ─────────────
-st.set_page_config(page_title='Census-Tract Cluster Explorer', layout='wide')
+# st.set_page_config(page_title='Census-Tract Cluster Explorer', layout='wide')
 st.markdown("""
 <style>
 .advisor-box { background: #212121; color: #fff; padding: 1rem; border-radius: 8px; height: 90vh; overflow-y: auto; }
