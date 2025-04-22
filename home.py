@@ -1,3 +1,3 @@
+import streamlit as st
 
-
-print("Home Page")
+st.title("So, You Want To Be A Restaurant Owner?")
