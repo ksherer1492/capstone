@@ -11,7 +11,7 @@ def run_dot_product_similarity(selected_geoid, income_path, race_path, return_df
 
     @st.cache_data
     def load_dictionary():
-        return pd.read_csv("../data/all/census/full_census_dictionary.csv")
+        return pd.read_csv("data/all/census/full_census_dictionary.csv")
 
     income_df, race_df = load_data()
     dictionary_df = load_dictionary()
