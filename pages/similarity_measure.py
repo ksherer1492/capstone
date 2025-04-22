@@ -23,10 +23,10 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-income_path = "/data/all/census/census_income_FIPS.csv"
-race_path = "/data/all/census/census_race_FIPS.csv"
-matched_path = "/data/all/census/matched_tracts_padded.csv"
-geojson_path = "/data/all/census/simplified_cities_00005.geojson"
+income_path = "data/all/census/census_income_FIPS.csv"
+race_path = "data/all/census/census_race_FIPS.csv"
+matched_path = "data/all/census/matched_tracts_padded.csv"
+geojson_path = "data/all/census/simplified_cities_00005.geojson"
 
 @st.cache_data
 def load_matched_geoids():
