@@ -6,7 +6,8 @@ import altair as alt
 
 st.set_page_config(layout='wide')
 st.title('City/Category Pair Trends and Analysis')
-
+st.subheader('Select a City and Category pair from the drop down below')
+st.text('This page displays the most predictive terms/phrases/topics of high and low performing restaurants for your chosen pair')
 ######### DEFINE VARS #########
 import os
 import certifi
@@ -20,7 +21,7 @@ client = OpenAI(api_key=openai_key)
 def load_data(): 
     keywords = pd.read_csv('data/all/citycategory/keyword_trends_by_category_city.csv', usecols=['category_city', 'top_positive_keywords', 'top_negative_keywords', 'top_positive_coefs', 'top_negative_coefs'])
     similarity = pd.read_csv('data/all/citycategory/most_similar_cities.csv')
-    topics = pd.read_csv('data/all/citycategory/topic_data.csv', usecols=['City_Category', 'Sentiment', 'Words', 'topic_words'])
+    topics = pd.read_csv('data/all/citycategory/topic_data.csv', usecols=['City_Category', 'Sentiment', 'Words', 'topic_words', 'Coefficient'])
     return keywords, similarity, topics
 
 keywords, similarity, topics = load_data()
@@ -77,8 +78,8 @@ def get_topic_words(selected_category, selected_city):
     filtered_df_pos = topics[(topics['City_Category'] == selected_pair) & (topics['Sentiment'] == 'Positive')]
     filtered_df_neg = topics[(topics['City_Category'] == selected_pair) & (topics['Sentiment'] == 'Negative')]
 
-    top_positive_topic_words = filtered_df_pos['topic_words'].tolist()
-    top_negative_topic_words = filtered_df_neg['topic_words'].tolist()
+    top_positive_topic_words = filtered_df_pos[['topic_words', 'Coefficient']]
+    top_negative_topic_words = filtered_df_neg[['topic_words', 'Coefficient']]
 
     return top_positive_topic_words, top_negative_topic_words
 
@@ -209,10 +210,11 @@ with agg_col[0]:
     with tab1:
         ######### REVIEWS #########
         if categories and cities:
+            st.subheader("Predictive Words/Phrases Derived from TF-IDF and Ridge Regression Coefficients")
             pos_df, neg_df = get_keyword_df(categories, cities)
             
             # Display the results
-            st.subheader(f"Top Positive Words for {categories} - {cities}")
+            st.text(f"Top Positive Words for {categories} - {cities}")
             chart = alt.Chart(pos_df).mark_bar().encode(
                 x=alt.X('Impact:Q', title='Impact'),        
                 y=alt.Y('Word:N', title='Word', sort=None),  
@@ -223,7 +225,7 @@ with agg_col[0]:
             )
             st.altair_chart(chart)         
 
-            st.subheader(f"Top Negative Words for {categories} - {cities}")
+            st.text(f"Top Negative Words for {categories} - {cities}")
             chart = alt.Chart(neg_df).mark_bar().encode(
                 x=alt.X('Impact:Q', title='Impact'),        
                 y=alt.Y('Word:N', title='Word', sort=None),  
@@ -239,9 +241,9 @@ with agg_col[0]:
             # Get the good and bad words for the most similar city-category pair
             pos_df, neg_df = get_keyword_df(similar_cat, similar_city)
             # similar_pos_words, similar_neg_words = get_similar_keywords(most_similar_pair)
-            
+            st.subheader("Predictive Words/Phrases Derived from TF-IDF and Ridge Regression Coefficients of the most similar City based on Cosine Similarity")
             # Display the good and bad words for the most similar city-category pair
-            st.subheader(f"Top Positive Words for the Most Similar City-Category Pair ({similar_cat} - {similar_city})")
+            st.text(f"Top Positive Words for {similar_cat} - {similar_city}")
             chart = alt.Chart(pos_df).mark_bar().encode(
                 x=alt.X('Impact:Q', title='Impact'),        
                 y=alt.Y('Word:N', title='Word', sort=None),  
@@ -252,7 +254,7 @@ with agg_col[0]:
             )
             st.altair_chart(chart)             
             
-            st.subheader(f"Top Negative Words for the Most Similar City-Category Pair ({similar_cat} - {similar_city})")
+            st.text(f"Top Negative Words for {similar_cat} - {similar_city}")
             chart = alt.Chart(neg_df).mark_bar().encode(
                 x=alt.X('Impact:Q', title='Impact'),        
                 y=alt.Y('Word:N', title='Word', sort=None),  
@@ -265,13 +267,34 @@ with agg_col[0]:
 
             selected_pair = f"{categories} - {cities}"
             if selected_pair in topics['City_Category'].values:
+                st.subheader("Predictive Topics Derived from BERTopic and Ridge Regression Coefficients")
                 top_positive_topics, top_negative_topics = get_topic_words(categories, cities)
 
-                st.subheader(f"Top Positive Topics for {categories} - {cities} including the topic words")
-                st.markdown(f"- " + "\n- ".join(top_positive_topics))
+                st.text(f"Top Positive Topics for {categories} - {cities} including the topic words")
+                chart = alt.Chart(top_positive_topics).mark_bar().encode(
+                    x=alt.X('Coefficient:Q', title='Impact'),        
+                    y=alt.Y('topic_words:N', title='Topic Words', sort=None),  
+                    color=alt.value("#00FF00")                  
+                ).properties(
+                    width=600,
+                    height=400
+                )
+                st.altair_chart(chart) 
+                # st.markdown(f"- " + "\n- ".join(top_positive_topics))
 
-                st.subheader(f"Top Negative Topics for {categories} - {cities} including the topic words")
-                st.markdown(f"- " + "\n- ".join(top_negative_topics)) 
+                st.text(f"Top Negative Topics for {categories} - {cities} including the topic words")
+                chart = alt.Chart(top_negative_topics).mark_bar().encode(
+                    x=alt.X('Coefficient:Q', title='Impact'),        
+                    y=alt.Y('topic_words:N', title='Topic Words', sort=None),  
+                    color=alt.value("#FF0000")                  
+                ).properties(
+                    width=600,
+                    height=400
+                )
+                st.altair_chart(chart) 
+                # st.markdown(f"- " + "\n- ".join(top_negative_topics)) 
+            else:
+                st.text("There are no topics for this city/category pair.")
 
     with tab2:
         ######### CHAT #########
