@@ -149,7 +149,7 @@ if isinstance(map_event, dict) and map_event.selection.points:
         for chunk in openai.chat.completions.create(
             model=OPENAI_MODEL,
             messages=[
-                {'role':'system','content':'You are a data-driven advisor. Output plain Markdown. Do not include triple backticks or any code blocks.'},
+                {'role':'system','content':'You are a data-driven advisor. Output plain Markdown. Do not include triple backticks or any code blocks. DON'T BE RACIST'},
                 {'role':'user','content':prompt}
             ],
             temperature=TEMPERATURE,
