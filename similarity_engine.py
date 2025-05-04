@@ -16,7 +16,7 @@ def run_dot_product_similarity(selected_geoid, income_path, race_path, return_df
     income_df, race_df = load_data()
     dictionary_df = load_dictionary()
 
-    # merge on FIPS codes
+    # Merge on FIPS codes
     merged_df = pd.merge(
         income_df, race_df,
         left_on='income_census_tract_FIPS',
@@ -43,12 +43,6 @@ def run_dot_product_similarity(selected_geoid, income_path, race_path, return_df
             .query("dot_similarity < 100")\
             .head(10)
 
-        if return_df:
-            return top10[['FIPS', 'dot_similarity']]
-        
-        st.subheader("Top 10 Most Similar Tracts (Dot Product Similarity)")
-        st.dataframe(top10[['FIPS', 'city', 'dot_similarity']])
-
         # Contributions
         contributions = pd.Series(vec, index=scaled.columns)
         contributions_abs = contributions.abs().sort_values(ascending=False)
@@ -64,10 +58,16 @@ def run_dot_product_similarity(selected_geoid, income_path, race_path, return_df
             columns={'description': 'Feature Description'}
         )
 
+        if return_df:
+            return top10[['FIPS', 'dot_similarity']], contrib_df
+
+        # If not returning, show directly
+        st.subheader("Top 10 Most Similar Tracts (Dot Product Similarity)")
+        st.dataframe(top10[['FIPS', 'city', 'dot_similarity']])
+
         st.subheader("Top 10 Contributing Features to Similarity")
         st.dataframe(contrib_df)
+
     else:
         st.error("Selected GEOID not found in merged dataset.")
-        return pd.DataFrame()
-
-
+        return pd.DataFrame(), pd.DataFrame()
