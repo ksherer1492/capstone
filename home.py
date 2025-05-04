@@ -14,6 +14,9 @@ st.markdown("""
 - **City Category Analysis**
   - Identifies localized strengths, weaknesses, and preferences.
   - Allows for market comparisons across cities.
+- **similarity measure**
+  - identifies the most similar census tracts to a selected tract based on income and demographic data
+  - maps similar census tracts and allows users to see the top features contributing to the similarity
 """)
 
 ##ADD ADDITIONAL PAGE SECTIONS HERE
