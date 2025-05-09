@@ -78,15 +78,16 @@ def build_prompt(row):
     hh_with_earnings = row['ci_EstimateNumber_HOUSEHOLD_INCOME_All_households_With_earnings']
     wage_hh = row['ci_EstimateNumber_HOUSEHOLD_INCOME_All_households_With_earnings_With_wages_or_salary_income']
     selfemp_hh = row['ci_EstimateNumber_HOUSEHOLD_INCOME_All_households_With_earnings_With_self_employment_income']
-    percap_income = row['ci_EstimateMean_income_dollars_PER_CAPITA_INCOME_BY_RACE_AND_HISPANIC_OR_LATINO_ORIGIN_Total_population']
+    percap_income = row['ci_EstimateMean_income_dollars_HOUSEHOLD_INCOME_All_households']
+    pop = row['cr_Total']
+    hh_with_earnings_pct = row['ci_EstimatePercent_Distribution_HOUSEHOLD_INCOME_All_households_With_earnings']
+    wage_hh_pct =  row['ci_EstimatePercent_Distribution_HOUSEHOLD_INCOME_All_households_With_earnings_With_wages_or_salary_income']
+    selfemp_pct =  row['ci_EstimatePercent_Distribution_HOUSEHOLD_INCOME_All_households_With_earnings_With_self_employment_income']
 
-    hh_with_earnings_pct = (hh_with_earnings / total_hh * 100) if total_hh else 0
-    wage_hh_pct = (wage_hh / hh_with_earnings * 100) if hh_with_earnings else 0
-    selfemp_pct = (selfemp_hh / hh_with_earnings * 100) if hh_with_earnings else 0
 
     lines = [
-        f"**Census Tract {tid} Overview**", '',
         "## 1. Tract Overview",
+        f"- Population: {int(pop):,}",
         f"- Total households: {int(total_hh):,}",
         f"- Households with earnings: {int(hh_with_earnings):,} ({hh_with_earnings_pct:.1f}% of total)",
         f"- Wage-earning households: {int(wage_hh):,} ({wage_hh_pct:.1f}% of earning households)",
@@ -100,8 +101,14 @@ def build_prompt(row):
         f"5. {row['driver_5']}", '',
         f"## 3. Cluster {cid} Snapshot",
         f"- “{most}” appears in **{cnt}** tracts in this cluster.", '',
-        "## 4. Recommendation",
-        "Provide **6–8 concise, data-driven bullets** for each section above, then close with a **4–6 sentence restaurant concept**."
+        "Provide **4–6 concise, data-driven bullets** for each section above",
+        "In the **Cluster Membership Drivers** section include **exactly five** bullet points—no more, no fewer. ",
+        "All sections should contain whatever data-driven text is appropriate.",
+        "You are a data-driven advisor. Output plain Markdown. ",
+        "Do not hallucinate or offer personal opinions. ",
+        "Do not mention SNAP or any government programs. ",
+        "Do not propose restaurant concepts based on cultural heritage, stereotypes or any demographic group.",
+        "Do not propose restaurant concepts that are farm-to-table."
     ]
     return "\n".join(lines)
 
@@ -217,18 +224,27 @@ with tab1:
             # stream the new response
             for chunk in openai.chat.completions.create(
                 model=OPENAI_MODEL,
-                messages=[
+                messages = [
                     {
-                      "role": "system",
-                      "content": (
-                        "You are a data-driven advisor. Output plain Markdown. "
-                        "Do not include triple backticks or ANY code blocks. "
-                        "DON'T BE RACIST. AVOID DIRECTLY CALLING OUT RACIAL GROUPS OR ETHNICITIES, "
-                        "AVOID RACIAL AND RACIST BIAS, DO NOT HALLUCINATE"
-                      )
+                        "role": "system",
+                        "content": (
+                            "You are a data-driven advisor. Output plain Markdown. "
+
+                            "Do not hallucinate or offer personal opinions. "
+
+                            "Do not mention SNAP or any government programs. "
+
+                            "Do not propose restaurant concepts based on cultural heritage, stereotypes or any demographic group."
+
+                            "Do not propose restaurant concepts that are farm-to-table."
+                        )
                     },
-                    {"role": "user", "content": prompt}
+                    {
+                        "role": "user",
+                        "content": prompt
+                    }
                 ],
+
                 temperature=TEMPERATURE,
                 max_tokens=MAX_TOKENS,
                 stream=True
@@ -248,7 +264,7 @@ with tab1:
                     ### This section will discuss both the analysis done, and how they contributed to the overall success of our project.
                     #### Analysis Performed:
                     1. Clustering of the census tract via hierarchical clustering.
-                    2. Programmatic thresold selection via the plotting of sil score vs threshold vs 4-city cluster count.
+                    2. Programmatic threshold selection via the plotting of sil score vs threshold vs 4-city cluster count.
                     3. Cluster filtering via the knee method.
                     4. Clustering quality evaluation via silhouette score, and cluster visualization via MDS.
                     5. Cluster membership driver analysis via centroid feature importance.
@@ -261,7 +277,7 @@ with tab1:
         st.image("images/dendrogram.png")
         st.markdown('''
                     The dendrogram represents a visualization of the hierarchical clustering process. The y-axis represents the distance between clusters, while the x-axis represents the individual census tracts. The height at which two clusters are merged indicates their similarity. A lower height indicates a higher similarity between the clusters.
-                    The colors represent rudamentry cluster membership, however this was later refined via programmatic threshold selection via the plotting of sil score vs threshold vs 4-city cluster count which will be discussed next.
+                    The colors represent rudimentry cluster membership, however this was later refined via programmatic threshold selection via the plotting of sil score vs threshold vs 4-city cluster count which will be discussed next.
                     
                     #### Programmatic Threshold Selection via the plotting of sil score vs threshold vs 4-city cluster count:
                     ''')
@@ -282,7 +298,7 @@ with tab1:
         st.image("images/silsample.png")
         st.image("images/mds.png")
         st.markdown('''
-                    The horizonrtal bar plot shows the silhouette score for each cluster. The silhouette score is a measure of how similar an object is to its own cluster compared to other clusters. A higher silhouette score indicates better-defined clusters. There are some clusters with silhouette scores close to 0, indicating that they are not well-defined. However, some of the clusters have silouette scores above 0.2, which given our dense feature space is a decent score.
+                    The horizontal bar plot shows the silhouette score for each cluster. The silhouette score is a measure of how similar an object is to its own cluster compared to other clusters. A higher silhouette score indicates better-defined clusters. There are some clusters with silhouette scores close to 0, indicating that they are not well-defined. However, some of the clusters have silhouette scores above 0.2, which given our dense feature space is a decent score.
                     The MDS plot projects all observations into two dimensions, with each point colored by its cluster label. Distances in this 2D view approximate the original pairwise dissimilarities: points that lie close together were deemed similar by the clustering algorithm, while those farther apart belong to more distinct clusters.
                     
                     #### Cluster membership driver analysis via centroid feature importance:
@@ -290,14 +306,10 @@ with tab1:
         st.image("images/clusters.png")
         st.markdown('''
                     The following steps were used to determine the cluster membership drivers:
-                    1. Standardize all numeric ethnicity and income census features with StandardScaler()
-
-                    2. Calculate the mean value of those features within each cluster to form cluster centroids
-
+                    1. Standardize all numeric ethnicity and income census features with StandardScaler().
+                    2. Calculate the mean value of those features within each cluster to form cluster centroids.
                     3. Rank the features with the largest absolute values at each centroid to determine the top 5 features most distinctive to each cluster.
-
                     4. Translated complicated census feature names into human readable descriptions.
-
                     5. Exported cluster, driver, census and geographic data into a geojson file for input into the dashboard.
 
                     #### Final Result / Success Contribution:
@@ -308,9 +320,12 @@ with tab1:
 
 
                     #### Known Issues:
-                    1. Clusters have cluster drivers that are the same for all displayed mouseover drivers. Cluster drivers were filtered to show only unique values for each cluster, however for unknown reasons some clusters have all the same drivers for their top 5 drivers. 
-                    2. The GPT generated Deep Insights overview is not always accurate or relevant to the data. This is a known issue with the OpenAI API and is not specific to this project. The API is trained on a large dataset and may not always produce accurate or relevant results for specific use cases.
-                    3. The dashboard performance is slow, even though we cache the data for quick reloading. This is an area of improvement for furutre iterations of the project.
-                    4. The GPT generated Deep Insights overview will sometimes name the tract name twice, this can be fixed by clicking another tract, but the cause of this issue is unknown.
-                    5. On initial load, the map and deep insights advisor appear to be squished together. The cause of this issue is not currently known. 
+                    1. Some clusters have cluster drivers that are repeated for all displayed mouseover drivers in a single cluster. Cluster drivers were filtered to show only unique values for each cluster, however for unknown reasons some clusters have all the same driver for their top 5 drivers. 
+                    2. The GPT generated Deep Insights overview is not always accurate or relevant to the data. AI generated data should always be checked for accuracy. This is a known issue with the OpenAI API and is not specific to this project. The API is trained on a large dataset and may not always produce accurate or relevant results for specific use cases.
+                    3. The dashboard performance is bad, especially on first load, but we cache the data for quicker reloading when returning to this page from another. This is an area of improvement for future iterations of the project.
+                    4. The GPT generated Deep Insights overview will sometimes name the tract name twice, this can be fixed by clicking another tract, this issue should be fixed as of 5/8/2025.
+                    5. On initial load, the map and deep insights advisor appear to be squished together. The cause of this issue is not currently known. This can be fixed by clicking another page in the sidebar, then returning to this page.
+                    6. The LA data is having difficulty loading, and is currently not displaying. This is a known issue with the way the census data is structured, and needs to be fixed in the future. Extensive troubleshooting was performed to try to fix this issue, but it is not currently known how to fix it. We have pinpointed the issue to the data export process, but attempted fixes have not been successful.
+                    7. Sometimes the GPT generated Deep Insights overview will generate 6 or more items in the list of cluster drivers despite being told to only generate 5. The 6th onward items are generally either derivatives of the first 5, or are not relevant to the data. This is a known issue with GPTs and is not specific to this project.
+                    8. The GPT generated Deep Insights restuarant concept is limited in creativity and is not always relevant to the data. It tends to generate generic farm-to-table concepts, or generic 'diversity cafes' that are problematic in nature. This is a known issue with GPTs, and while this issue was attempted to be fixed by providing more specific prompts, the fix was not entirely successful. This is a known issue with GPTs and not specific to this project.
                     ''')
