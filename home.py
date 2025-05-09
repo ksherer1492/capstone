@@ -17,7 +17,12 @@ st.markdown("""
 - **similarity measure**
   - identifies the most similar census tracts to a selected tract based on income and demographic data
   - maps similar census tracts and allows users to see the top features contributing to the similarity
+- **Census Tract Clustering Analysis**
+  - Groups census tracts into clusters based on a precomputed similarity matrix, provides overview of census tract features.
+  - Allows users to explore the clusters and their characteristics.            
+
 """)
+
 
 ##ADD ADDITIONAL PAGE SECTIONS HERE
 
