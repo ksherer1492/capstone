@@ -64,13 +64,12 @@ Each page includes an **About** section explaining the methodology and how it su
     [google]
     api_key = "YOUR_GOOGLE_API_KEY"
 
-    [census]
-    api_key = "YOUR_CENSUS_API_KEY"
+    openai_key = "YOUR_OPENAI_KEY"
     ```
 
 4. Run the app:
     ```bash
-    streamlit run app.py
+    streamlit run home.py
     ```
 
 Or view the hosted version here: [https://capstone-dashboard-mizzou.streamlit.app](https://capstone-dashboard-mizzou.streamlit.app)
