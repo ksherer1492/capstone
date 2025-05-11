@@ -4,7 +4,7 @@
 
 This Streamlit dashboard is designed for aspiring or current restaurant owners seeking **data-driven insights** into optimal locations and business strategies in four major U.S. cities: **Chicago, Austin, New York, and Los Angeles**.
 
-## 🔍 Objective
+## Objective
 
 To answer these key business questions:
 
