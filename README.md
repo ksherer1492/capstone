@@ -12,7 +12,7 @@ To answer these key business questions:
 - What key factors help determine the best restaurant locations across different cities?
 - How can restaurant owners leverage customer sentiment and competition data to make smarter decisions?
 
-## 🧠 What the Dashboard Provides
+## What the Dashboard Provides
 
 This interactive dashboard provides **location-specific business intelligence** and **strategic guidance** to help restaurant owners:
 
@@ -21,7 +21,7 @@ This interactive dashboard provides **location-specific business intelligence** 
 - Tailor offerings and positioning based on neighborhood characteristics.
 - Compare cities and spot underserved markets.
 
-## 📊 Dashboard Pages & Features
+## Dashboard Pages & Features
 
 ### 1. **City Category Analysis**
 - Identifies local strengths, weaknesses, and consumer preferences.
@@ -47,7 +47,7 @@ This interactive dashboard provides **location-specific business intelligence** 
 
 Each page includes an **About** section explaining the underlying methods and how they support data-driven decision-making.
 
-## 🗂 Data Sources
+## Data Sources
 
 - [Google Maps API](https://developers.google.com/maps/documentation)
 - [U.S. Census Bureau](https://www.census.gov/data.html)
@@ -55,12 +55,12 @@ Each page includes an **About** section explaining the underlying methods and ho
 - Google Places & Review Data
 - GeoJSON & shapefiles for spatial analysis
 
-## ⚠️ Disclaimer of Data Bias
+##  Disclaimer of Data Bias
 
 - **Survivorship Bias**: Data may favor restaurants that have survived long enough to accumulate reviews.
 - **Nonresponse Bias**: Census data reflects only respondents; weights and margins of error are applied to adjust.
 
-## 🚀 Getting Started
+## Getting Started
 
 ### Run Locally
 
