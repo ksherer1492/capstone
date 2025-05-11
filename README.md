@@ -2,7 +2,7 @@
 
 **Capstone Project – Master of Science in Data Science & Analytics**
 
-This Streamlit dashboard is designed for aspiring or current restaurant owners seeking **data-driven insights** into optimal locations and business strategies in four major U.S. cities: **Chicago, Austin, New York, and Los Angeles**.
+This Streamlit dashboard is designed for aspiring or current restaurant owners seeking data-driven insights into optimal locations and key factors influencing restaurant success in four major U.S. cities: **Chicago, Austin, New York, and Los Angeles**.
 
 ## Objective
 
@@ -10,55 +10,39 @@ To answer these key business questions:
 
 - What separates highly reviewed restaurants from poorly reviewed ones?
 - What key factors help determine the best restaurant locations across different cities?
-- How can restaurant owners leverage customer sentiment and competition data to make smarter decisions?
 
-## What the Dashboard Provides
+## Dashboard Features
 
-This interactive dashboard provides **location-specific business intelligence** and **strategic guidance** to help restaurant owners:
-
-- Identify high-potential areas using income and demographic data.
-- Understand local competition and customer sentiment from Google reviews.
-- Tailor offerings and positioning based on neighborhood characteristics.
-- Compare cities and spot underserved markets.
-
-## Dashboard Pages & Features
+This interactive dashboard provides four main analysis pages:
 
 ### 1. **City Category Analysis**
-- Identifies local strengths, weaknesses, and consumer preferences.
-- Allows cross-city market comparisons by cuisine and price tier.
+- Identify localized strengths, weaknesses, and preferences.
+- Compare market conditions across cities.
 
 ### 2. **Similarity Measure**
-- Select a census tract and view the top 10 most demographically similar tracts.
-- Uses dot product similarity across standardized features.
-- Visualizes the most important traits contributing to similarity.
+- Select a census tract and view the top 10 most similar tracts based on income and demographic features.
+- Visualize similarity via dot product and see key contributing variables.
 
 ### 3. **Census Tract Clustering Analysis**
-- Groups tracts using a precomputed similarity matrix.
-- Explore clusters of neighborhoods with shared economic and racial characteristics.
-- Gain regional insights into community-level market behavior.
+- Explore clusters of census tracts grouped by income and race characteristics.
+- Understand how different areas relate and differ from each other.
 
 ### 4. **Search Census Tract**
-- Enter any U.S. address to find the corresponding census tract.
-- Get real-time guidance based on tract-level data.
-- Highlight areas on the map and receive targeted **strategic recommendations**:
-  - Competition density and pricing
-  - Google review sentiment trends
-  - Suggestions on how to best **position your restaurant** to align with local demand
+- Input an address and automatically retrieve its corresponding census tract using Google Maps and the Census Geocoder APIs.
 
-Each page includes an **About** section explaining the underlying methods and how they support data-driven decision-making.
+Each page includes an **About** section explaining the methodology and how it supports answering the project’s key questions.
 
 ## Data Sources
 
 - [Google Maps API](https://developers.google.com/maps/documentation)
 - [U.S. Census Bureau](https://www.census.gov/data.html)
 - Public restaurant inspection datasets
-- Google Places & Review Data
-- GeoJSON & shapefiles for spatial analysis
+- GeoJSON files and shapefiles for census tracts
 
-##  Disclaimer of Data Bias
+## Disclaimer of Data Bias
 
-- **Survivorship Bias**: Data may favor restaurants that have survived long enough to accumulate reviews.
-- **Nonresponse Bias**: Census data reflects only respondents; weights and margins of error are applied to adjust.
+- **Survivorship Bias**: Data may favor restaurants that survived long enough to generate reviews.
+- **Nonresponse Bias**: Census data includes only respondents; statistical weights and margins of error are applied to compensate.
 
 ## Getting Started
 
@@ -66,4 +50,38 @@ Each page includes an **About** section explaining the underlying methods and ho
 
 1. Clone the repo:
     ```bash
-    git clone https://github.com/ksher
+    git clone https://github.com/ksherer1492/capstone.git
+    cd capstone
+    ```
+
+2. Install dependencies:
+    ```bash
+    pip install -r requirements.txt
+    ```
+
+3. Set up your API keys in `.streamlit/secrets.toml`:
+    ```toml
+    [google]
+    api_key = "YOUR_GOOGLE_API_KEY"
+
+    [census]
+    api_key = "YOUR_CENSUS_API_KEY"
+    ```
+
+4. Run the app:
+    ```bash
+    streamlit run app.py
+    ```
+
+Or view the hosted version here: [https://capstone-dashboard-mizzou.streamlit.app](https://capstone-dashboard-mizzou.streamlit.app)
+
+## License
+
+This project is licensed under the MIT License. See [LICENSE](LICENSE) for details.
+
+## Author
+
+Kevin Sherer  
+MSDSA Capstone Project – University of Missouri  
+GitHub: [@ksherer1492](https://github.com/ksherer1492)
+
