@@ -80,7 +80,7 @@ This project is licensed under the MIT License. See [LICENSE](LICENSE) for detai
 
 ## Author
 
-Kevin Sherer  
+Kevin Sherer, Reid Lawson, Ryan Russell, Daniel Bassett
 MSDSA Capstone Project – University of Missouri  
 GitHub: [@ksherer1492](https://github.com/ksherer1492)
 
