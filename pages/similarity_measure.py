@@ -2,12 +2,13 @@ import streamlit as st
 import pandas as pd
 import geopandas as gpd
 import plotly.graph_objects as go
+import requests
 from similarity_engine import run_dot_product_similarity
 
 # Set up Streamlit
 st.set_page_config(page_title="Search Census Tract", layout="wide")
 
-# Custom styling
+# Styling
 st.markdown("""
     <style>
     html, body, .main, .block-container {
@@ -30,13 +31,7 @@ race_path = "data/all/census/census_race_FIPS.csv"
 matched_path = "data/all/census/matched_tracts_padded.csv"
 geojson_path = "data/all/census/simplified_cities_00005.geojson"
 
-# City prefix mapping
-city_map = {
-    "06": "LA",
-    "17": "CHI",
-    "48": "ATX",
-    "36": "NYC"
-}
+city_map = {"06": "LA", "17": "CHI", "48": "ATX", "36": "NYC"}
 
 # Load data
 @st.cache_data
@@ -51,46 +46,76 @@ def load_geojson():
 matched_geoids = load_matched_geoids()
 tracts_gdf = load_geojson()
 
-# UI input
-st.title("Search Census Tract From Matched Data")
-default_geoid = "17031251300"
-search_geoid = st.text_input("Enter Census Tract GEOID (11 digits): (Example Tract Below)", value=default_geoid, max_chars=11)
+# Title
+st.title("Search Census Tract From Address or GEOID")
 
-# Default map center and zoom
+# Example
+st.markdown("Example: `1234 S California Ave, Chicago, IL 60608`")
+address = st.text_input("Enter a U.S. address (or leave blank to use a GEOID):")
+search_geoid = None
+
+if address:
+    try:
+        api_key = st.secrets["google"]["api_key"]
+    except Exception:
+        st.error("Google API key not found in Streamlit secrets.")
+        st.stop()
+
+    geocode_url = "https://maps.googleapis.com/maps/api/geocode/json"
+    geocode_params = {"address": address, "key": api_key}
+    geocode_resp = requests.get(geocode_url, params=geocode_params).json()
+
+    if geocode_resp["status"] != "OK":
+        st.error(f"Google Geocoding failed: {geocode_resp['status']}")
+        st.stop()
+
+    location = geocode_resp["results"][0]["geometry"]["location"]
+    lat, lon = location["lat"], location["lng"]
+    st.write(f"Latitude: {lat}, Longitude: {lon}")
+
+    # U.S. Census Geocoder
+    census_url = (
+        "https://geocoding.geo.census.gov/geocoder/geographies/coordinates"
+        f"?x={lon}&y={lat}&benchmark=Public_AR_Current&vintage=Current_Current&format=json"
+    )
+    census_resp = requests.get(census_url).json()
+
+    try:
+        tract_info = census_resp["result"]["geographies"]["Census Tracts"][0]
+        search_geoid = tract_info["GEOID"]
+        st.success(f"Census Tract GEOID: {search_geoid}")
+    except Exception as e:
+        st.error("Could not extract census tract info from Census Geocoder.")
+        st.exception(e)
+        st.stop()
+else:
+    default_geoid = "17031251300"
+    search_geoid = st.text_input("Or enter a Census Tract GEOID:", value=default_geoid, max_chars=11)
+
+# --- Map + Similarity ---
 map_center = {"lat": 39.5, "lon": -98.35}
 zoom_level = 3.2
 markers = []
-
-# Set all tracts initially to Unmatched
 tracts_gdf["tract_type"] = "Unmatched"
 
-# --- Search Logic ---
 if search_geoid:
-    padded = search_geoid.zfill(11)
-
+    padded = str(search_geoid).zfill(11)
     if padded in matched_geoids:
         st.success(f"Census Tract {padded} found in matched dataset.")
         st.session_state["selected_geoid"] = padded
-
-        # Reset tract types
         tracts_gdf["tract_type"] = "Unmatched"
         tracts_gdf.loc[tracts_gdf["GEOID"] == padded, "tract_type"] = "Selected"
 
         target_tract = tracts_gdf[tracts_gdf["GEOID"] == padded]
-
         if not target_tract.empty:
             centroid = target_tract.geometry.centroid.iloc[0]
             map_center = {"lat": centroid.y, "lon": centroid.x}
             zoom_level = 10
 
-            # Run similarity
             top10_df, contrib_df = run_dot_product_similarity(padded, income_path, race_path, return_df=True)
             top10_df = top10_df.sort_values(by="dot_similarity", ascending=False).reset_index(drop=True)
-
-            # Save similar tracts and scores to session state
             st.session_state["similar_tracts"] = dict(zip(top10_df["FIPS"], top10_df["dot_similarity"].round(3)))
 
-            # Join geometry while preserving similarity order
             tract_geom_map = tracts_gdf.set_index("GEOID")["geometry"]
             top10_df["geometry"] = top10_df["FIPS"].map(tract_geom_map)
             top10_with_geom = gpd.GeoDataFrame(top10_df, geometry="geometry")
@@ -98,10 +123,8 @@ if search_geoid:
             top10_with_geom['lat'] = top10_with_geom['centroid'].y
             top10_with_geom['lon'] = top10_with_geom['centroid'].x
 
-            # Mark similar tracts
             tracts_gdf.loc[tracts_gdf["GEOID"].isin(top10_df["FIPS"]), "tract_type"] = "Similar"
 
-            # Selected tract marker
             city_abbr = city_map.get(padded[:2], "")
             prefixed_label = f"{city_abbr}-{padded}"
             markers.append(go.Scattermapbox(
@@ -115,7 +138,6 @@ if search_geoid:
                 showlegend=True
             ))
 
-            # Similar tract markers with NUMBERED legend entries
             for i, row in top10_with_geom.iterrows():
                 city_abbr_sim = city_map.get(row['FIPS'][:2], "")
                 label = f"{city_abbr_sim}-{row['FIPS']}"
@@ -133,15 +155,9 @@ if search_geoid:
     else:
         st.warning(f"Census Tract {padded} not found in matched dataset.")
 
-# Color mapping
+# Color mapping + Map Plot
 color_levels = {"Unmatched": 0, "Similar": 1, "Selected": 2}
-color_scale = [
-    [0.0, "gray"],
-    [0.5, "orange"],
-    [1.0, "yellow"]
-]
-
-# Plot map
+color_scale = [[0.0, "gray"], [0.5, "orange"], [1.0, "yellow"]]
 fig = go.Figure()
 
 fig.add_trace(go.Choroplethmapbox(
@@ -169,11 +185,9 @@ fig.update_layout(
     hovermode='closest'
 )
 
-# Show map
 st.markdown("### Census Tract Map")
 st.plotly_chart(fig, use_container_width=True, config={"scrollZoom": True})
 
-# Show similarity table with city added
 if search_geoid and padded in matched_geoids:
     top10_df["City"] = top10_df["FIPS"].str[:2].map(city_map)
     if "geometry" in top10_df.columns:
@@ -186,11 +200,11 @@ if search_geoid and padded in matched_geoids:
         st.markdown("### Top Contributing Features to Similarity")
         st.dataframe(contrib_df)
 
-# Description
+# Updated Description Box
 st.markdown("""
 <div style="background-color: white; color: black; padding: 15px; border-radius: 10px; margin-top: 30px;">
     <h4 style="color: #DAA520;">How This Tool Works</h4>
-    <p>This app allows you to search for a specific <strong>11-digit Census Tract GEOID</strong> from matched data in <strong>Los Angeles, Chicago, Austin, or NYC</strong>.</p>
+    <p>This app allows you to search for a specific address or 11-digit Census Tract GEOID from matched data in <strong>Los Angeles, Chicago, Austin, or NYC</strong>.</p>
     <p>When a valid tract is entered, the tool:
     <ul>
         <li>Highlights the tract's area in <span style="color: goldenrod;"><strong>yellow</strong></span> and places a <span style="color: green;"><strong>green dot</strong></span> at its center</li>
@@ -199,11 +213,6 @@ st.markdown("""
         <li>Provides a table listing the contributing features that drove the similarity score</li>
     </ul>
     </p>
-    <p><strong>Similarity Sources:</strong></p>
-    <ul>
-        <li><strong>Income Data (ACS 2023 5-Year Estimate)</strong></li>
-        <li><strong>Race Data (Decennial Census 2020)</strong></li>
-        <li><strong>Geographic Boundaries: TIGER/Line Shapefiles</strong></li>
-    </ul>
+    <p><strong>Note:</strong> If you want to search for a different Census Tract, please refresh the page.</p>
 </div>
 """, unsafe_allow_html=True)
