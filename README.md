@@ -28,7 +28,7 @@ This interactive dashboard provides four main analysis pages:
 - Understand how different areas relate and differ from each other.
 
 ### 4. **Search Census Tract**
-- Input an address and automatically retrieve its corresponding census tract using Google Maps and the Census Geocoder APIs.
+- Input an address and automatically retrieve its corresponding census tract using Google Maps API.
 
 Each page includes an **About** section explaining the methodology and how it supports answering the project’s key questions.
 
