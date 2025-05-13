@@ -766,12 +766,16 @@ with agg_col:
                         ## Feature Selection: Random Forest
                         After filtering out all of the words with low statistical significance, we are left with 
                         20 thousand unique words. To further reduce this to 50 keywords, a random forest regression model was used.
-                        After training on millions of reviews across thousands of restaurants, we can take a peak at the feature
+                        After training on millions of reviews across thousands of restaurants, we can take a peek at the feature
                         importance given by the trained regression model.
 
-                        Taking a look at the most important features, or words, we are left with a list of words that 
+                        Taking a look at the most important features, i.e. words, we are left with a list of words that 
                         are most indicative of a restaurant's public perception. Words like amazing, worst, horrible, great, etc. You'll
                         notice again that these are all descriptive words and not specific food items.
+
+                        Now the top 50 most important words can be used to filter actual reviews. Just keep reviews that contain combinations of these words and discard the rest.
+                        What you are left with are the most informative and concise reviews that are quite indicative of the performance of a food & beverage 
+                        establishment.
                     """)
         with col2:
             st.image('images/keyword-extraction/09.png')
