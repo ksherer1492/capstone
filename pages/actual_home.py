@@ -16,7 +16,7 @@ st.markdown("""
 - **City Category Analysis**
   - Identifies localized strengths, weaknesses, and preferences.
   - Allows for market comparisons across cities.
-- **Keyword Extraction**
+- **Customer Sentiment (Keyword Extraction)**
   - Extracts words most predictive of restaurant ratings
   - Using these words to filter reviews highlights the most succinct and insightful customer feedback
 - **similarity measure**
