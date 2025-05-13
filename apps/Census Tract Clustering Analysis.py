@@ -121,9 +121,6 @@ with tab1:
     <style>
       /* style every markdown container as a dark, scrollable box */
       div[data-testid="stMarkdownContainer"] {
-        background: #212121;
-        color: #fff;
-        background-color: transparent !important;
         padding: 1rem;
         border-radius: 8px;
         max-height: 80vh;
