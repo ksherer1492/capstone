@@ -16,6 +16,9 @@ st.markdown("""
 - **City Category Analysis**
   - Identifies localized strengths, weaknesses, and preferences.
   - Allows for market comparisons across cities.
+- **Keyword Extraction**
+  - Extracts words most predictive of restaurant ratings
+  - Using these words to filter reviews highlights the most succinct and insightful customer feedback
 - **similarity measure**
   - identifies the most similar census tracts to a selected tract based on income and demographic data
   - maps similar census tracts and allows users to see the top features contributing to the similarity
