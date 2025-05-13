@@ -484,7 +484,7 @@ with map_col:
 
 ######### AGGREGATIONS #########
 with agg_col:
-    tab1, tab2, tab3 = st.tabs(["📈 Ratings Over Time", ":star: Reviews", ":left_speech_bubble: DeepInsights"])
+    tab1, tab2, tab3, tab4 = st.tabs(["📈 Ratings Over Time", ":star: Raw Reviews", ":eye: DeepInsights", ":left_speech_bubble: About"])
 
     with tab1:
         ######### LINE CHART #########
@@ -652,3 +652,53 @@ with agg_col:
         #     for i, message in enumerate(st.session_state['messages']):
         #         with st.chat_message(message['role']):
         #             st.markdown(message['content'])
+    
+    with tab4:
+        ######### ABOUT PAGE #########
+        st.markdown("# Keyword Extraction")
+        st.markdown(''' 
+                    ### This section will discuss both the analysis done, and how they contributed to the overall success of our project.
+                    #### Analysis Performed:
+                    1. Label each word in each review with the restaurant's average Google Maps rating
+                    2. Aggregate the counts the average review score for each word
+                    3. Use count threshold to cull noise
+                    4. Feature Selection: Z-test for only the most significant words
+                    5. Feature Selection: Random Forest Regression for most important words
+                    ''')
+        
+        st.divider()
+
+        col1, col2 = st.columns([5, 7])
+        with col1:
+            st.markdown("""
+                        This analysis begins by labeling each word with the parent restaurant's average rating. 
+                        This figure shows a single review for a McDonald's restaurant. It has an average rating of 3.5 stars across 1400 reviews. 
+                        Begin by moving each word to its own unique row and giving it a value of 3.5 stars.
+                            
+                        The next figure below shows the exact same concept but expanded to three reviews instead of one. 
+                        Look at the word "great" as an example. A new row is created for each time it appears in a different review and then labeled
+                        with its parent restaurant's average rating. 
+                        
+                        Finally, the aggregated count and average rating is computed. The word "great" has a count of 3 with an average of 3.70.
+                        
+                    """)
+        with col2:
+            st.image('images/keyword-extraction/01.png')
+        st.image('images/keyword-extraction/02.png')
+
+        st.divider()
+
+        col1, col2 = st.columns([5, 7])
+        with col1:
+            st.markdown(""" 
+                        Now imagine instead of just aggregating the words across three reviews, you apply the same basic process to nearly 3 million reviews.
+                        You end up with a table like this. 829 thousand unique words were identified, but you'll immediately notice that
+                        most of these "words" have extremely low counts because they are most likely typos or misspellings. 
+
+                        The solution was to filter out all the words that fell below a count threshold. 
+                        Using a count threshold of 12 reduced the number of unique word from 829 thousand to 48 thousand, a 95 percent reduction
+                        in the feature space while incurring a paltry 5 percent loss of information. A good trade off!
+                    """)
+        with col2:
+            st.image('images/keyword-extraction/03.png')
+
