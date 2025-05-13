@@ -666,11 +666,12 @@ with agg_col:
                     5. Feature Selection: Random Forest Regression for most important words
                     ''')
         
-        st.divider()
 
+        st.divider()
         col1, col2 = st.columns([5, 7])
         with col1:
             st.markdown("""
+                        ## Word Aggregations
                         This analysis begins by labeling each word with the parent restaurant's average rating. 
                         This figure shows a single review for a McDonald's restaurant. It has an average rating of 3.5 stars across 1400 reviews. 
                         Begin by moving each word to its own unique row and giving it a value of 3.5 stars.
@@ -686,11 +687,12 @@ with agg_col:
             st.image('images/keyword-extraction/01.png')
         st.image('images/keyword-extraction/02.png')
 
-        st.divider()
 
+        st.divider()
         col1, col2 = st.columns([5, 7])
         with col1:
             st.markdown(""" 
+                        ## Cutting Out the Noise
                         Now imagine instead of just aggregating the words across three reviews, you apply the same basic process to nearly 3 million reviews.
                         You end up with a table like this. 829 thousand unique words were identified, but you'll immediately notice that
                         most of these "words" have extremely low counts because they are most likely typos or misspellings. 
@@ -701,4 +703,77 @@ with agg_col:
                     """)
         with col2:
             st.image('images/keyword-extraction/03.png')
+
+
+        st.divider()
+        st.markdown(""" 
+                    ## Words without Purpose
+                    After culling all of the low-count noise, the words that remain at least are not typos.
+                    But you'll notice that the words with the highest average rating are just Japanese and Italian food items.
+                    The lowest rated words are mostly related to McDonald's and other fast food restaurants. If the goal is to 
+                    identify keywords that all food & beverage establishment owners find valuable, how can we find more broadly applicable keywords?
+                """)
+        col1, col2 = st.columns([6, 6])
+        with col1:
+            st.image('images/keyword-extraction/04.png')
+        with col2:
+            st.image('images/keyword-extraction/05.png')
+
+
+        st.divider()
+        col1, col2 = st.columns([5, 7])
+        with col1:
+            st.markdown(""" 
+                        ## Feature Selection: Filter Method
+                        The solution was to use a basic z-test across all words. This returns a p-value for each word.
+                        If you filter for words with an average ratings higher than the population mean and then arrange by
+                        p value, you get words like gem, cute, cozy, etc. Likewise filtering for the statistically significant
+                        negative words returns words like smh, nasty, horrible, etc. 
+
+                        You'll notice that these significant words are adjectives whereas the previous list of words consisted of specific 
+                        food items like "McMuffin" and "gelato". This is a huge improvement because now we have words that have
+                        broad application across all food & beverage establishments. 
+                        
+                        These descriptive words act as a sort of red flag/green flag modifier of what they describe. For example, a review
+                        can describe the food as horrible. Another could describe the customer service as horrible. Any time the word
+                        "horrible" appears, the owner should pay close attention to what customers are describing as horrible.
+                    """)
+        with col2:
+            st.markdown('### Positive Words')
+            st.image('images/keyword-extraction/06.png')
+            st.markdown('### Negative Words')
+            st.image('images/keyword-extraction/07.png')
+        
+
+        st.divider()
+        col1, col2 = st.columns([5, 7])
+        with col1:
+            st.markdown(""" 
+                        ## Feature Selection: Filter Method cont...
+                        The chart to the right shows the distribution of restaurant ratings
+                        based on whether or not the word appears in their sample of reviews. In this example, restaurants
+                        with the word "horrible" are charted in red while restaurants with the word "gem" are in green.
+                        Even using just 2 words, two distinct clusters start to form.
+                    """)
+        with col2:
+            st.image('images/keyword-extraction/08.png')
+
+
+        st.divider()
+        col1, col2 = st.columns([5, 7])
+        with col1:
+            st.markdown(""" 
+                        ## Feature Selection: Random Forest
+                        After filtering out all of the words with low statistical significance, we are left with 
+                        20 thousand unique words. To further reduce this to 50 keywords, a random forest regression model was used.
+                        After training on millions of reviews across thousands of restaurants, we can take a peak at the feature
+                        importance given by the trained regression model.
+
+                        Taking a look at the most important features, or words, we are left with a list of words that 
+                        are most indicative of a restaurant's public perception. Words like amazing, worst, horrible, great, etc. You'll
+                        notice again that these are all descriptive words and not specific food items.
+                    """)
+        with col2:
+            st.image('images/keyword-extraction/09.png')
+
 
